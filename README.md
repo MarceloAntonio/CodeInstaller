@@ -13,30 +13,19 @@ Download the latest release for your platform from the [Releases page](https://g
 ### Linux
 
 ```bash
-# Download
 curl -L -o codium-installer https://github.com/MarceloAntonio/CodeInstaller/releases/latest/download/codium-installer-linux-amd64
-```
-```bash
-# Make executable
 chmod +x codium-installer
-```
-```bash
-# Run (installs VSCodium + extensions + settings)
 ./codium-installer
 ```
 
 ### Windows (PowerShell)
 
 ```powershell
-# Download
 Invoke-WebRequest -Uri "https://github.com/MarceloAntonio/CodeInstaller/releases/latest/download/codium-installer-windows-amd64.exe" -OutFile "codium-installer.exe"
-```
-```powershell
-# Run (installs VSCodium + extensions + settings)
 .\codium-installer.exe
 ```
 
-> **Note:** If you want the bundled `settings.json`, clone the repo and place the binary next to the `config/` folder, or build from source (see below).
+> **Note:** The `settings.json` is embedded directly into the binary, so you don't need to download the `config/` folder. However, if you place a `config/settings.json` file next to the executable, it will override the embedded settings.
 
 ---
 
@@ -71,10 +60,6 @@ git clone https://github.com/MarceloAntonio/CodeInstaller && cd CodeInstaller
 
 ```bash
 go build -o codium-installer .
-
-```
-
-```bash
 ./codium-installer
 ```
 **For Windows (cross-compile from Linux, or native on Windows):**
