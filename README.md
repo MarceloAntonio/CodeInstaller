@@ -15,10 +15,12 @@ Download the latest release for your platform from the [Releases page](https://g
 ```bash
 # Download
 curl -L -o codium-installer https://github.com/MarceloAntonio/CodeInstaller/releases/latest/download/codium-installer-linux-amd64
-
+```
+```bash
 # Make executable
 chmod +x codium-installer
-
+```
+```bash
 # Run (installs VSCodium + extensions + settings)
 ./codium-installer
 ```
@@ -28,7 +30,8 @@ chmod +x codium-installer
 ```powershell
 # Download
 Invoke-WebRequest -Uri "https://github.com/MarceloAntonio/CodeInstaller/releases/latest/download/codium-installer-windows-amd64.exe" -OutFile "codium-installer.exe"
-
+```
+```powershell
 # Run (installs VSCodium + extensions + settings)
 .\codium-installer.exe
 ```
@@ -61,17 +64,19 @@ Invoke-WebRequest -Uri "https://github.com/MarceloAntonio/CodeInstaller/releases
 ## Building from source
 
 ```bash
-git clone https://github.com/MarceloAntonio/CodeInstaller
-cd CodeInstaller
+git clone https://github.com/MarceloAntonio/CodeInstaller && cd CodeInstaller
 ```
 
 **For Linux (native build):**
 
 ```bash
 go build -o codium-installer .
-./codium-installer
+
 ```
 
+```bash
+./codium-installer
+```
 **For Windows (cross-compile from Linux, or native on Windows):**
 
 ```bash
