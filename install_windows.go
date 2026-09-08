@@ -43,18 +43,14 @@ func platformInstall(selectAll bool) {
 	installExtensions(codiumBin, selected)
 
 	// 5. Copy settings.json (with backup of existing one).
-	dir, err := exeDir()
-	if err != nil {
-		errorMsg(fmt.Sprintf("Could not determine executable directory: %v", err))
-	} else {
-		appData := os.Getenv("APPDATA")
-		userProfile := os.Getenv("USERPROFILE")
-		installSettings(
-			filepath.Join(dir, "config", "settings.json"),
-			filepath.Join(appData, "VSCodium", "User", "settings.json"),
-			filepath.Join(userProfile, "BKP.config"),
-		)
-	}
+	dir := findConfigDir()
+	appData := os.Getenv("APPDATA")
+	userProfile := os.Getenv("USERPROFILE")
+	installSettings(
+		filepath.Join(dir, "config", "settings.json"),
+		filepath.Join(appData, "VSCodium", "User", "settings.json"),
+		filepath.Join(userProfile, "BKP.config"),
+	)
 
 	banner("✔ VSCODIUM SETUP COMPLETED", colorGreen)
 	fmt.Printf("\033[1;33mIf 'codium' is not recognized, restart your terminal.\033[0m\n")

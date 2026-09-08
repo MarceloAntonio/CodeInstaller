@@ -57,17 +57,43 @@ func banner(title, color string) {
 // exeDir returns the directory that contains the running executable,
 // resolving symlinks so that config/settings.json is always found
 // regardless of how the binary was invoked.
-func exeDir() (string, error) {
-	exe, err := os.Executable()
-	if err != nil {
-		return "", err
+//
+// It checks two locations (in order):
+//  1. The directory containing the executable (for standalone binary deployment)
+//  2. The current working directory (for `go run` or running from the project root)
+//
+// Returns the first directory where config/settings.json actually exists,
+// or falls back to the executable directory if neither has it.
+func findConfigDir() string {
+	candidates := []string{}
+
+	// 1st priority: directory of the executable itself.
+	if exe, err := os.Executable(); err == nil {
+		if resolved, err := filepath.EvalSymlinks(exe); err == nil {
+			candidates = append(candidates, filepath.Dir(resolved))
+		}
 	}
-	resolved, err := filepath.EvalSymlinks(exe)
-	if err != nil {
-		return "", err
+
+	// 2nd priority: current working directory (matches original bash script behaviour).
+	if cwd, err := os.Getwd(); err == nil {
+		candidates = append(candidates, cwd)
 	}
-	return filepath.Dir(resolved), nil
+
+	settingsRel := filepath.Join("config", "settings.json")
+	for _, dir := range candidates {
+		if _, err := os.Stat(filepath.Join(dir, settingsRel)); err == nil {
+			return dir
+		}
+	}
+
+	// Fallback: return first candidate even if settings.json is absent
+	// (the install step will simply skip when it doesn't find the file).
+	if len(candidates) > 0 {
+		return candidates[0]
+	}
+	return "."
 }
+
 
 // runCmd executes an external command, piping stdout/stderr/stdin to the
 // current terminal so the user sees all output (including sudo prompts).
