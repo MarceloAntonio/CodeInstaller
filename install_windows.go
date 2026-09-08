@@ -42,12 +42,10 @@ func platformInstall(selectAll bool) {
 	selected := selectExtensions(selectAll)
 	installExtensions(codiumBin, selected)
 
-	// 5. Copy settings.json (with backup of existing one).
-	dir := findConfigDir()
+	// 5. Install settings.json (with backup of existing one).
 	appData := os.Getenv("APPDATA")
 	userProfile := os.Getenv("USERPROFILE")
 	installSettings(
-		filepath.Join(dir, "config", "settings.json"),
 		filepath.Join(appData, "VSCodium", "User", "settings.json"),
 		filepath.Join(userProfile, "BKP.config"),
 	)

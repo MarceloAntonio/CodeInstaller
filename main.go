@@ -10,12 +10,21 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 )
+
+// settings.json is embedded into the binary at compile time.
+// This means the binary is fully self-contained — even when downloaded
+// standalone via curl/Invoke-WebRequest from a GitHub Release.
+//
+//go:embed config/settings.json
+var embeddedConfig embed.FS
+
 
 // ---------------------------------------------------------------------------
 // ANSI colours
@@ -54,45 +63,6 @@ func banner(title, color string) {
 // Shared utilities
 // ---------------------------------------------------------------------------
 
-// exeDir returns the directory that contains the running executable,
-// resolving symlinks so that config/settings.json is always found
-// regardless of how the binary was invoked.
-//
-// It checks two locations (in order):
-//  1. The directory containing the executable (for standalone binary deployment)
-//  2. The current working directory (for `go run` or running from the project root)
-//
-// Returns the first directory where config/settings.json actually exists,
-// or falls back to the executable directory if neither has it.
-func findConfigDir() string {
-	candidates := []string{}
-
-	// 1st priority: directory of the executable itself.
-	if exe, err := os.Executable(); err == nil {
-		if resolved, err := filepath.EvalSymlinks(exe); err == nil {
-			candidates = append(candidates, filepath.Dir(resolved))
-		}
-	}
-
-	// 2nd priority: current working directory (matches original bash script behaviour).
-	if cwd, err := os.Getwd(); err == nil {
-		candidates = append(candidates, cwd)
-	}
-
-	settingsRel := filepath.Join("config", "settings.json")
-	for _, dir := range candidates {
-		if _, err := os.Stat(filepath.Join(dir, settingsRel)); err == nil {
-			return dir
-		}
-	}
-
-	// Fallback: return first candidate even if settings.json is absent
-	// (the install step will simply skip when it doesn't find the file).
-	if len(candidates) > 0 {
-		return candidates[0]
-	}
-	return "."
-}
 
 
 // runCmd executes an external command, piping stdout/stderr/stdin to the
@@ -144,14 +114,39 @@ func copyFile(src, dst string) error {
 // Settings management (shared between platforms)
 // ---------------------------------------------------------------------------
 
-// installSettings copies config/settings.json next to the executable into the
-// platform's VSCodium user config directory, backing up any existing file first.
-func installSettings(settingsSrc, settingsDst, backupDir string) {
-	if _, err := os.Stat(settingsSrc); os.IsNotExist(err) {
-		return // no settings.json bundled — skip silently
+// installSettings installs settings.json into the platform's VSCodium user config directory.
+// It checks for a local 'config/settings.json' next to the binary to allow overrides,
+// otherwise it falls back to the embedded settings.json.
+// It backs up any existing file first.
+func installSettings(settingsDst, backupDir string) {
+	var settingsData []byte
+	var err error
+	var sourceDesc string
+
+	// 1. Try to read a local override next to the executable
+	exe, err := os.Executable()
+	localSettings := "config/settings.json"
+	if err == nil {
+		if resolved, err := filepath.EvalSymlinks(exe); err == nil {
+			localSettings = filepath.Join(filepath.Dir(resolved), "config", "settings.json")
+		}
 	}
 
-	progress("Installing settings.json")
+	if _, statErr := os.Stat(localSettings); statErr == nil {
+		settingsData, err = os.ReadFile(localSettings)
+		sourceDesc = "local override"
+	} else {
+		// 2. Fall back to the embedded config
+		settingsData, err = embeddedConfig.ReadFile("config/settings.json")
+		sourceDesc = "embedded config"
+	}
+
+	if err != nil {
+		errorMsg(fmt.Sprintf("Could not read settings.json (%s): %v", sourceDesc, err))
+		return
+	}
+
+	progress(fmt.Sprintf("Installing settings.json (%s)", sourceDesc))
 
 	// Backup existing settings before overwriting.
 	if _, err := os.Stat(settingsDst); err == nil {
@@ -163,7 +158,13 @@ func installSettings(settingsSrc, settingsDst, backupDir string) {
 		}
 	}
 
-	if err := copyFile(settingsSrc, settingsDst); err != nil {
+	// Write the new settings
+	if err := os.MkdirAll(filepath.Dir(settingsDst), 0o755); err != nil {
+		errorMsg(fmt.Sprintf("Failed to create settings directory: %v", err))
+		return
+	}
+
+	if err := os.WriteFile(settingsDst, settingsData, 0o644); err != nil {
 		errorMsg(fmt.Sprintf("Failed to install settings.json: %v", err))
 	} else {
 		success("settings.json installed")
