@@ -2,6 +2,8 @@
 
 Cross-platform installer for [VSCodium](https://vscodium.com/) with my personal setup — curated extensions and a shared `settings.json` — for both Arch Linux and Windows.
 
+Written as a **single Go program** that detects the OS at compile time via build tags and runs the appropriate logic.
+
 ---
 
 ## What it does
@@ -20,61 +22,74 @@ Cross-platform installer for [VSCodium](https://vscodium.com/) with my personal 
 
 | Platform | Requirements |
 | --- | --- |
-| Arch Linux | `git` (installed automatically if missing) |
-| Windows | [`winget`](https://github.com/microsoft/winget-cli) (built into Windows 10 2004+ / 11) |
+| Arch Linux | `git` (installed automatically if missing), Go compiler (to build) |
+| Windows | [`winget`](https://github.com/microsoft/winget-cli) (built into Windows 10 2004+ / 11), Go compiler (to build) |
 
 ---
 
-## Installation
-
-**1. Clone the repository**
+## Building
 
 ```bash
 git clone https://github.com/MarceloAntonio/CodeInstaller
 cd CodeInstaller
 ```
 
-**2. Run the installer for your OS**
+**For Linux (native build):**
 
-Arch Linux:
 ```bash
-./install.sh
+go build -o codium-installer .
 ```
 
-Windows (PowerShell):
+**For Windows (cross-compile from Linux, or native on Windows):**
+
+```bash
+GOOS=windows GOARCH=amd64 go build -o codium-installer.exe .
+```
+
+---
+
+## Installation
+
+Run the built binary — it detects your OS automatically:
+
+```bash
+./codium-installer
+```
+
 ```powershell
-.\install.ps1
+.\codium-installer.exe
 ```
 
-> **Note:** Windows blocks script execution by default. If you get a "cannot be loaded because running scripts is disabled" error, run:
-> ```powershell
-> powershell -ExecutionPolicy Bypass -File .\install.ps1
-> ```
+> **Note (Linux):** Do not run as root. The program will prompt for `sudo` when needed.
 
 ---
 
 ## Uninstalling
 
-Both scripts accept a `-r` flag to remove VSCodium and its config (with a backup taken first).
+Pass the `-r` flag to remove VSCodium and its config (with a backup taken first):
 
 ```bash
-./install.sh -r
+./codium-installer -r
 ```
 
 ```powershell
-.\install.ps1 -r
+.\codium-installer.exe -r
 ```
+
+`--remove` and `--uninstall` are also accepted.
 
 ---
 
 ## Configuration
 
-Drop your own `settings.json` inside `config/` and both scripts will pick it up automatically:
+Drop your own `settings.json` inside `config/` and the installer will pick it up automatically:
 
 ```
 CodeInstaller/
-├── install.sh
-├── install.ps1
+├── main.go
+├── install_linux.go
+├── install_windows.go
+├── go.mod
 └── config/
     └── settings.json
 ```
@@ -85,16 +100,23 @@ If `config/settings.json` doesn't exist, that step is simply skipped.
 
 ## Extensions installed
 
-- [`esbenp.prettier-vscode`](https://open-vsx.org/extension/esbenp/prettier-vscode) — Prettier
-- [`Catppuccin.catppuccin-vsc-pack`](https://open-vsx.org/extension/Catppuccin/catppuccin-vsc-pack) — Catppuccin theme pack
+| Category | Extension |
+| --- | --- |
+| Core | `esbenp.prettier-vscode`, `Catppuccin.catppuccin-vsc-pack`, `eamodio.gitlens`, `usernamehw.errorlens`, `foxundermoon.shell-format` |
+| Go | `golang.go` |
+| Rust | `rust-lang.rust-analyzer` |
+| Java | `redhat.java`, `vscjava.vscode-maven` |
+| Python | `ms-python.python`, `charliermarsh.ruff` |
+| C/C++ | `llvm-vs-code-extensions.vscode-clangd`, `vadimcn.vscode-lldb` |
+| JS/TS | `dbaeumer.vscode-eslint` |
 
 ---
 
 ## Backups
 
-Before overwriting or removing anything, both scripts back up your existing config:
+Before overwriting or removing anything, the installer backs up your existing config:
 
 | Platform | Backup location |
 | --- | --- |
-| Arch Linux | `~/BKP.config` |
-| Windows | `%USERPROFILE%\BKP.config` |
+| Arch Linux | `~/BKP.config/settings.json` |
+| Windows | `%USERPROFILE%\BKP.config\settings.json` |
