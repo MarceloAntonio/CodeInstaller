@@ -13,7 +13,7 @@ import (
 // Windows — install
 // ---------------------------------------------------------------------------
 
-func platformInstall() {
+func platformInstall(selectAll bool) {
 	banner("VSCODIUM INSTALLER", colorCyan)
 
 	// 1. Verify winget is available.
@@ -38,8 +38,9 @@ func platformInstall() {
 	// 3. Locate the codium binary — it may not be in PATH right after install.
 	codiumBin := findCodium()
 
-	// 4. Install extensions.
-	installExtensions(codiumBin)
+	// 4. Let the user pick extensions, then install them.
+	selected := selectExtensions(selectAll)
+	installExtensions(codiumBin, selected)
 
 	// 5. Copy settings.json (with backup of existing one).
 	dir, err := exeDir()
@@ -105,12 +106,10 @@ func platformUninstall() {
 // findCodium locates the codium.cmd binary. It first checks PATH, then falls
 // back to known default installation directories.
 func findCodium() string {
-	// Already in PATH?
 	if p, err := exec.LookPath("codium"); err == nil {
 		return p
 	}
 
-	// Check well-known install locations.
 	candidates := []string{
 		filepath.Join(os.Getenv("LOCALAPPDATA"), "Programs", "VSCodium", "bin", "codium.cmd"),
 		filepath.Join(os.Getenv("ProgramFiles"), "VSCodium", "bin", "codium.cmd"),
@@ -122,6 +121,5 @@ func findCodium() string {
 		}
 	}
 
-	// Last resort — hope it shows up in PATH at call time.
 	return "codium"
 }

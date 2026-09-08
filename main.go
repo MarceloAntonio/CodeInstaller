@@ -2,7 +2,8 @@
 //
 // Usage:
 //
-//	codium-installer              Install VSCodium + extensions + settings
+//	codium-installer              Install VSCodium (interactive extension picker)
+//	codium-installer -a           Install VSCodium with ALL extensions (skip picker)
 //	codium-installer -r           Uninstall VSCodium (with config backup)
 //	codium-installer --remove     Same as -r
 //	codium-installer --uninstall  Same as -r
@@ -26,35 +27,6 @@ const (
 	colorCyan  = "\033[1;36m"
 	colorReset = "\033[0m"
 )
-
-// ---------------------------------------------------------------------------
-// Extensions to install — edit this slice to add/remove extensions.
-// Organised by category so new language packs are easy to append.
-// ---------------------------------------------------------------------------
-
-var extensions = []string{
-	// Core / editor
-	"esbenp.prettier-vscode",
-	"Catppuccin.catppuccin-vsc-pack",
-	"eamodio.gitlens",
-	"usernamehw.errorlens",
-	"foxundermoon.shell-format",
-	// Go
-	"golang.go",
-	// Rust
-	"rust-lang.rust-analyzer",
-	// Java
-	"redhat.java",
-	"vscjava.vscode-maven",
-	// Python
-	"ms-python.python",
-	"charliermarsh.ruff",
-	// C / C++
-	"llvm-vs-code-extensions.vscode-clangd",
-	"vadimcn.vscode-lldb",
-	// JavaScript / TypeScript
-	"dbaeumer.vscode-eslint",
-}
 
 // ---------------------------------------------------------------------------
 // Console helpers — replicate the visual style of the original scripts.
@@ -194,7 +166,12 @@ func backupSettingsBeforeRemoval(settingsPath, backupDir string) {
 
 // installExtensions calls `codium --install-extension` for every extension
 // in the list. A single failure does NOT abort the remaining extensions.
-func installExtensions(codiumBin string) {
+func installExtensions(codiumBin string, extensions []string) {
+	if len(extensions) == 0 {
+		success("No extensions selected — skipping")
+		return
+	}
+
 	progress("Installing extensions")
 	for _, ext := range extensions {
 		if err := runCmd(codiumBin, "--install-extension", ext); err != nil {
@@ -211,18 +188,23 @@ func installExtensions(codiumBin string) {
 
 func main() {
 	remove := false
+	all := false
 
 	for _, arg := range os.Args[1:] {
 		switch arg {
 		case "-r", "--remove", "--uninstall":
 			remove = true
+		case "-a", "--all":
+			all = true
 		case "-h", "--help":
-			fmt.Println("Usage: codium-installer          Install VSCodium")
+			fmt.Println("Usage: codium-installer          Install VSCodium (interactive extension picker)")
+			fmt.Println("       codium-installer -a       Install with ALL extensions (skip picker)")
 			fmt.Println("       codium-installer -r       Uninstall VSCodium")
 			os.Exit(0)
 		default:
 			errorMsg(fmt.Sprintf("Unknown option: %s", arg))
 			fmt.Println("Usage: codium-installer          Install VSCodium")
+			fmt.Println("       codium-installer -a       Install with ALL extensions")
 			fmt.Println("       codium-installer -r       Uninstall VSCodium")
 			os.Exit(1)
 		}
@@ -231,6 +213,6 @@ func main() {
 	if remove {
 		platformUninstall()
 	} else {
-		platformInstall()
+		platformInstall(all)
 	}
 }

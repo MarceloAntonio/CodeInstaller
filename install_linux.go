@@ -12,7 +12,7 @@ import (
 // Linux (Arch) — install
 // ---------------------------------------------------------------------------
 
-func platformInstall() {
+func platformInstall(selectAll bool) {
 	// Refuse to run as root — the script will ask for sudo when needed.
 	if os.Geteuid() == 0 {
 		errorMsg("Do not run this program as root (sudo). It will prompt for your password when needed.")
@@ -47,8 +47,9 @@ func platformInstall() {
 	os.RemoveAll(tmpDir)
 	success("vscodium-bin installed")
 
-	// 3. Install extensions.
-	installExtensions("codium")
+	// 3. Let the user pick extensions, then install them.
+	selected := selectExtensions(selectAll)
+	installExtensions("codium", selected)
 
 	// 4. Copy settings.json (with backup of existing one).
 	dir, err := exeDir()
