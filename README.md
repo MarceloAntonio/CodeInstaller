@@ -6,6 +6,37 @@ Written as a **single Go program** that detects the OS at compile time via build
 
 ---
 
+## Quick install (pre-built binaries)
+
+Download the latest release for your platform from the [Releases page](https://github.com/MarceloAntonio/CodeInstaller/releases/latest).
+
+### Linux
+
+```bash
+# Download
+curl -L -o codium-installer https://github.com/MarceloAntonio/CodeInstaller/releases/latest/download/codium-installer-linux-amd64
+
+# Make executable
+chmod +x codium-installer
+
+# Run (installs VSCodium + extensions + settings)
+./codium-installer
+```
+
+### Windows (PowerShell)
+
+```powershell
+# Download
+Invoke-WebRequest -Uri "https://github.com/MarceloAntonio/CodeInstaller/releases/latest/download/codium-installer-windows-amd64.exe" -OutFile "codium-installer.exe"
+
+# Run (installs VSCodium + extensions + settings)
+.\codium-installer.exe
+```
+
+> **Note:** If you want the bundled `settings.json`, clone the repo and place the binary next to the `config/` folder, or build from source (see below).
+
+---
+
 ## What it does
 
 - Installs VSCodium
@@ -22,12 +53,12 @@ Written as a **single Go program** that detects the OS at compile time via build
 
 | Platform | Requirements |
 | --- | --- |
-| Arch Linux | `git` (installed automatically if missing), Go compiler (to build) |
-| Windows | [`winget`](https://github.com/microsoft/winget-cli) (built into Windows 10 2004+ / 11), Go compiler (to build) |
+| Arch Linux | `git` (installed automatically if missing) |
+| Windows | [`winget`](https://github.com/microsoft/winget-cli) (built into Windows 10 2004+ / 11) |
 
 ---
 
-## Building
+## Building from source
 
 ```bash
 git clone https://github.com/MarceloAntonio/CodeInstaller
@@ -38,6 +69,7 @@ cd CodeInstaller
 
 ```bash
 go build -o codium-installer .
+./codium-installer
 ```
 
 **For Windows (cross-compile from Linux, or native on Windows):**
@@ -45,22 +77,6 @@ go build -o codium-installer .
 ```bash
 GOOS=windows GOARCH=amd64 go build -o codium-installer.exe .
 ```
-
----
-
-## Installation
-
-Run the built binary — it detects your OS automatically:
-
-```bash
-./codium-installer
-```
-
-```powershell
-.\codium-installer.exe
-```
-
-> **Note (Linux):** Do not run as root. The program will prompt for `sudo` when needed.
 
 ---
 
@@ -82,19 +98,17 @@ Pass the `-r` flag to remove VSCodium and its config (with a backup taken first)
 
 ## Configuration
 
-Drop your own `settings.json` inside `config/` and the installer will pick it up automatically:
+Drop your own `settings.json` inside `config/` next to the binary and the installer will pick it up automatically:
 
 ```
 CodeInstaller/
-├── main.go
-├── install_linux.go
-├── install_windows.go
-├── go.mod
-└── config/
-    └── settings.json
+├── codium-installer       (or .exe)
+├── config/
+│   └── settings.json
+└── ...
 ```
 
-If `config/settings.json` doesn't exist, that step is simply skipped.
+If `config/settings.json` doesn't exist next to the binary, that step is simply skipped.
 
 ---
 
@@ -120,3 +134,16 @@ Before overwriting or removing anything, the installer backs up your existing co
 | --- | --- |
 | Arch Linux | `~/BKP.config/settings.json` |
 | Windows | `%USERPROFILE%\BKP.config\settings.json` |
+
+---
+
+## Releases
+
+Releases are built automatically by GitHub Actions whenever a version tag is pushed:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+This creates a GitHub Release with pre-built binaries for Linux (amd64) and Windows (amd64).
