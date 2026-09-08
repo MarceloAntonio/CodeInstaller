@@ -1,0 +1,83 @@
+// NOTE:
+// This configuration assumes the following extensions are installed:
+//
+// - Catppuccin Theme & Catppuccin Icons
+//      Launch VS Code Quick Open (Ctrl+P), paste the following command, and press enter.
+//      ext install Catppuccin.catppuccin-vsc-pack
+//
+// - Prettier     
+//      Launch VS Code Quick Open (Ctrl+P), paste the following command, and press enter.
+//      ext install esbenp.prettier-vscode
+//
+// - JetBrains Mono font installed on the system 
+//     Arch - sudo pacman -S ttf-jetbrains-mono
+//     Windows - https://www.jetbrains.com/lp/mono/
+
+{
+  // ==============================
+  // THEME
+  // ==============================
+  "workbench.colorTheme": "Catppuccin Mocha",
+
+  // ==============================
+  // ICONS
+  // ==============================
+  "workbench.iconTheme": "catppuccin-mocha",
+
+  // ==============================
+  // FILES
+  // ==============================
+  "files.autoSave": "afterDelay",
+
+  // ==============================
+  // FONT
+  // ==============================
+  "editor.fontFamily": "JetBrainsMono Nerd Font",
+  "editor.fontSize": 15,
+  "editor.lineHeight": 1.8,
+
+  // ==============================
+  // WINDOW
+  // ==============================
+  "window.zoomLevel": 0,
+
+  // ==============================
+  // CURSOR & ANIMATIONS
+  // ==============================
+  "editor.renderLineHighlight": "gutter",
+  "editor.cursorBlinking": "smooth",
+  "editor.cursorSmoothCaretAnimation": "on",
+
+  // ==============================
+  // EDITOR UI
+  // ==============================
+  "workbench.editor.labelFormat": "short",
+  "breadcrumbs.enabled": false,
+ 
+  "editor.scrollbar.horizontal": "hidden",
+  "editor.scrollbar.vertical": "hidden",
+  "workbench.statusBar.visible": false,
+
+  // ==============================
+  // EXPLORER
+  // ==============================
+  "explorer.compactFolders": false,
+
+  // ==============================
+  // WORKBENCH LAYOUT
+  // ==============================
+  "workbench.activityBar.location": "top",
+  "window.commandCenter": false,
+  "window.menuBarVisibility": "compact",
+  "chat.commandCenter.enabled": false,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "vscode.html-language-features"
+  },
+  "prettier.useEditorConfig": false,
+  "editor.wordWrap": "on"
+}
+
